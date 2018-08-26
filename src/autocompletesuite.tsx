@@ -5,6 +5,7 @@ import * as Autosuggest from 'react-autosuggest'
 export interface AutocompleteState{
   value : string
   actualSuggestions : AutocompleteItem[]
+  selectedItem : AutocompleteItem | null
 }
 
 export interface AutocompleteItem{
@@ -26,9 +27,9 @@ export class AutocompleteSuite extends React.Component<AutocompleteProp , Autoco
     super(props)
     this.state = {
       value :'',
-      actualSuggestions : []
+      actualSuggestions : [],
+      selectedItem : null
     }
-    console.log(props)
   }
 
   getSuggestion = (value:string,fullSuggestions:AutocompleteItem[]):AutocompleteItem[] => {
@@ -50,11 +51,21 @@ export class AutocompleteSuite extends React.Component<AutocompleteProp , Autoco
     })  
   }
 
+  inputElement : any
+  focus(){
+    this.inputElement.input.focus()
+  }
+
   inputOnKeyPress = (ev:any)=>{
     if(ev.key == 'Enter'){
       ev.stopPropagation()
       ev.preventDefault()
-      this.props.nextEntryCallback()
+      console.log('enter clicked')
+      this.setState({
+        selectedItem : this.state.actualSuggestions.length > 0 ? this.state.actualSuggestions[this.state.actualSuggestions.length-1] : null,
+        value : this.state.actualSuggestions.length > 0 ? this.getSuggestionValue(this.state.actualSuggestions[this.state.actualSuggestions.length-1]) : this.state.value
+      })
+      this.props.nextEntryCallback(this)
     }
   }
 
@@ -99,6 +110,7 @@ export class AutocompleteSuite extends React.Component<AutocompleteProp , Autoco
     }
     return <Autosuggest
       id = {this.props.id}
+      ref = {as=>this.inputElement=as} /* throws error at compilation somehow (?) */
       suggestions = {actualSuggestions}
       onSuggestionsFetchRequested = {this.onSuggestionsFetchRequested}
       onSuggestionsClearRequested = {this.onSuggestionsClearRequest}

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
+import InfiniteCalendar from 'react-infinite-calendar'
 import { ADD_NEW_EVENT, DB_METHODS, InvestmentOption,State } from './store'
 import { AutocompleteSuite } from './autocompletesuite'
 
@@ -99,18 +100,20 @@ class ManualNewEvent extends React.Component<ManualNewEventInterface&ManualNewEv
 
   autosuggestInvestment : AutocompleteSuite
   autosuggestMethod : AutocompleteSuite
+  arrayInputs : (AutocompleteSuite | HTMLInputElement)[] = []
 
-  nextInput(){
-    
+  nextInput(item:any){
+    const idx = this.arrayInputs.findIndex(input=>input==item)
+    if(idx>=0) this.arrayInputs[idx+1].focus()
   }
 
   render(){
     return <form onChange={this.handleChange} onSubmit={this.handleSubmit}>
-
+      <InfiniteCalendar />
       <div className = "form-group">
         <label htmlFor = "investmentName">Investment</label>
         <AutocompleteSuite
-          ref={ac=>this.autosuggestInvestment=ac}
+          ref={ac=>(this.autosuggestInvestment=ac,this.arrayInputs.push(ac))}
           placeholder = "e.g. S&P500, ishare ..."
           id = "investmentName"
           addnew = {false}
@@ -122,7 +125,7 @@ class ManualNewEvent extends React.Component<ManualNewEventInterface&ManualNewEv
       <div className = "form-group">
         <label htmlFor = "methodId">Event Name</label>
         <AutocompleteSuite 
-          ref={ac=>this.autosuggestMethod=ac}
+          ref={ac=>(this.autosuggestMethod=ac,this.arrayInputs.push(ac))}
           placeholder = "BUY, SELL, LOG, SPLIT"
           id = "eventName"
           addnew = {false}
@@ -134,7 +137,7 @@ class ManualNewEvent extends React.Component<ManualNewEventInterface&ManualNewEv
       </div>
       <div className = "form-group">
         <label htmlFor = "eventPrice">Unit Price</label>
-        <input type = "text" className = "form-control" id = "eventPrice" />
+        <input ref={input=>this.arrayInputs.push(input)} type = "text" className = "form-control" id = "eventPrice" />
         <div className="form-control-feedback"></div>
       </div>
       <div className = "form-group">

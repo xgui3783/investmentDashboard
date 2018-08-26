@@ -4,6 +4,7 @@ export const ADD_NEW_EVENT = `ADD_NEW_EVENT`
 export const ADD_NEW_INVESTMENT = `ADD_NEW_INVESTMENT`
 
 export const ASYNC_UPDATED = `ASYNC_UPDATED`
+export const INIT_FETCH = `INIT_FETCH`
 
 export const DB_METHODS = {
   BUY : 'BUY',
@@ -13,9 +14,6 @@ export const DB_METHODS = {
 }
 
 export interface State {
-  fromDate : Date
-  toDate : Date
-
   investments : InvestmentOption[]
 }
 
@@ -33,6 +31,11 @@ interface InvestmentEvent{
   volume : number
 }
 
+interface InvestAction extends AnyAction{
+  type : string
+  payload : Partial<InvestmentOption> | string
+}
+
 const dispatchAsync = (json:any) => store.dispatch({
   type : ASYNC_UPDATED,
   payload : JSON.stringify(json)
@@ -40,6 +43,12 @@ const dispatchAsync = (json:any) => store.dispatch({
 
 const reducer : Reducer<State> = (prevState:State,action:AnyAction)=>{
   switch(action.type){
+    case INIT_FETCH:
+      fetch('/initGetData')
+        .then(res=>res.json())
+        .then(rows=>(console.log(rows),rows.map((row:any)=>row.doc).forEach(dispatchAsync)))
+        .catch(console.error)
+      return prevState
     case ASYNC_UPDATED:
       const parsedPayload = JSON.parse(action.payload)
       const idx = prevState.investments.findIndex(inv=>inv.name==parsedPayload.name) 
@@ -85,14 +94,10 @@ const reducer : Reducer<State> = (prevState:State,action:AnyAction)=>{
         })    
       return prevState
     case ADD_NEW_EVENT:
+      const { eventName, ...postPayload } = action.payload
       const payloadNewEvent = {
-        method : action.payload.eventName,
-        payload : {
-          name : action.payload.name,
-          date : action.payload.date,
-          price : action.payload.price,
-          volume : action.payload.volume
-        }
+        method : eventName,
+        payload : postPayload
       }
 
       fetch('/newDataPoint',{
@@ -114,8 +119,6 @@ const reducer : Reducer<State> = (prevState:State,action:AnyAction)=>{
 }
 
 const initialState : State = {
-  fromDate : new Date(0),
-  toDate : new Date(),
   investments : []
 }
 

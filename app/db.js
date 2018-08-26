@@ -55,9 +55,9 @@ const dbInterface = (app) => {
     
   return ({
     newEvent : function(body){
-      console.log(body)
+      console.log('db.newEvent called',body,dbUrl)
       const storedObj = {
-        date : Date.now(),
+        date : body.date ? body.date : Date.now(),
         name : body.payload.name,
         method : body.method,
         price : body.payload.price ? body.payload.price : '',
@@ -82,6 +82,12 @@ const dbInterface = (app) => {
     },
     calcYield : function(fromDate,toDate,id){
 
+    },
+    initGetData : function(){
+      console.log('db.initGetData called')
+      return fetch(dbEventUrl+'/_all_docs?include_docs=true')
+        .then(resp=>resp.json())
+        .then(json=>(console.log(json),Promise.resolve(json.rows)))
     }
 })}
 
